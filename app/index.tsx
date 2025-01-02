@@ -1,5 +1,5 @@
 import { SignedIn, SignedOut, useUser, useAuth } from "@clerk/clerk-expo";
-import { Link, useRouter } from "expo-router";
+import { Link } from "expo-router";
 import {
   Text,
   View,
@@ -7,27 +7,24 @@ import {
   Pressable,
   Image,
   Animated,
+  Linking,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { useEffect, useRef } from "react";
+import { Router } from "expo-router";
 
 export default function Page() {
   const { user } = useUser();
-  const { isSignedIn } = useAuth();
-  const router = useRouter();
+  const { signOut } = useAuth();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (isSignedIn) {
-      router.push("/(home)/todoPage");
-    } else {
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [isSignedIn]);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -37,18 +34,31 @@ export default function Page() {
       />
       <View style={styles.overlay}>
         <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-          <View style={styles.signedOutContainer}>
-            <Text style={styles.title}>Todo App</Text>
-            <Text style={styles.messageText}>
-              Organize your tasks efficiently
-            </Text>
-            <Link href="/(auth)/sign-in" asChild>
-              <Pressable style={styles.signInButton}>
-                <Text style={styles.signInText}>Get Started</Text>
-                <AntDesign name="arrowright" size={20} color="#000" />
-              </Pressable>
-            </Link>
-          </View>
+          <SignedIn>
+            <View style={styles.signedInContainer}>
+              <Text style={styles.welcomeText}>Welcome back,</Text>
+              <Text style={styles.emailText}>
+                {user?.emailAddresses[0].emailAddress}
+              </Text>
+              <Link style={styles.logoutButton} href={"/(home)/todoPage"}>
+                <Text style={styles.logoutText}>Go to List</Text>
+              </Link>
+            </View>
+          </SignedIn>
+          <SignedOut>
+            <View style={styles.signedOutContainer}>
+              <Text style={styles.title}>Todo App</Text>
+              <Text style={styles.messageText}>
+                Organize your tasks efficiently
+              </Text>
+              <Link href="/(auth)/sign-in" asChild>
+                <Pressable style={styles.signInButton}>
+                  <Text style={styles.signInText}>Get Started</Text>
+                  <AntDesign name="arrowright" size={20} color="#000" />
+                </Pressable>
+              </Link>
+            </View>
+          </SignedOut>
         </Animated.View>
       </View>
     </View>
